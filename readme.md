@@ -57,7 +57,7 @@ python main.py
 ## 🔍 Citation
 ```bibtex
 @article{raihan2025neurocue,
-  title={NeuroCue: An Open-Source Framework for Multimodal Cognitive Experimentation and EEG Data Collection},
+  title={NeuroCue: An Open-Source Framework for Synchronized EEG Data Acquisition, Multimodal Recording, and Stimuli Presentation Using Muse Headsets},
   author={Raihan, Md. Johir and Nahid, Abdullah-Al},
   year={2025},
   note={Under Review}
