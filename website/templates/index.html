@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Collection Tool</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            padding: 20px;
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 600px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        /* Button Styles */
+        button {
+            margin: 10px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #13c6dad8, #0a8379bd);
+            color: white;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #1d98a5, #005d55);
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* Input Styles */
+        input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Status Box Styles */
+        .status-box {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .status-box p {
+            margin: 5px 0;
+        }
+
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.hide {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        /* Floating Label Styles */
+        .input-group {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+            outline: none;
+        }
+
+        .input-group label {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #999;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group textarea+label {
+            top: 20px;
+            transform: none;
+        }
+
+        /* Floating Label Effect */
+        .input-group input:focus+label,
+        .input-group input:not(:placeholder-shown)+label,
+        .input-group textarea:focus+label,
+        .input-group textarea:not(:placeholder-shown)+label {
+            top: 0;
+            left: 10px;
+            font-size: 12px;
+            color: #007bff;
+            background-color: #fff;
+            padding: 0 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Subject Description Card -->
+    <div class="card">
+        <h1>Subject Description</h1>
+        <div class="input-group">
+            <input type="text" id="subject-name" placeholder=" ">
+            <label for="subject-name">Name</label>
+        </div>
+        <div class="input-group">
+            <input type="number" id="subject-age" placeholder=" ">
+            <label for="subject-age">Age</label>
+        </div>
+        <div class="input-group">
+            <input type="text" id="subject-id" placeholder=" ">
+            <label for="subject-id">Unique ID</label>
+        </div>
+        <div class="input-group">
+            <textarea id="subject-info" placeholder=" "></textarea>
+            <label for="subject-info">Additional Information</label>
+        </div>
+        <button id="submit-subject">Submit</button>
+    </div>
+
+    <!-- Video Feed Control Panel -->
+    <div class="card">
+        <h1>Video Feed Control Panel</h1>
+        <button id="visualization-video">Visualization</button>
+        <button id="start-video">Start Recording</button>
+        <button id="stop-video">Stop Recording</button>
+        <div class="status-box" id="status-video-box">
+            <p>Status: Idle</p>
+        </div>
+    </div>
+
+    <!-- Muse Control Panel -->
+    <div class="card">
+        <h1>Muse Control Panel</h1>
+        <button id="visualization">Visualization</button>
+        <button id="start">Start Recording</button>
+        <button id="stop">Stop Recording</button>
+        <div class="status-box" id="status-box">
+            <p>Status: Idle</p>
+        </div>
+    </div>
+
+    <!-- Image Stimuli Control Panel -->
+    <div class="card">
+        <h1>Image Stimuli Control Panel</h1>
+        <div class="input-group">
+            <input type="text" id="file-sequence" placeholder=" ">
+            <label for="file-sequence">File Sequence (e.g., 0, 1, 2...)</label>
+        </div>
+        <div class="input-group">
+            <input type="text" id="file-duration" placeholder=" ">
+            <label for="file-duration">Duration of Each File (e.g., 5 or 5, 6, 7... Must Match The Number Of Files)</label>
+        </div>
+        <div class="input-group">
+            <input type="text" id="initial-delay" placeholder=" ">
+            <label for="initial-delay">Initial Delay (e.g., 2)</label>
+        </div>
+        <div class="button-group">
+            <button id="load-config">Load Config</button>
+            <button id="save-config">Save Config</button>
+            <button id="start-stimuli">Start Stimuli</button>
+        </div>
+        <div class="status-box" id="status-stimuli-box">
+            <p>Status: Idle</p>
+        </div>
+    </div>
+
+    <!-- Video Stimuli Control Panel -->
+    <div class="card">
+        <h1>Video Stimuli Control Panel</h1>
+        <div class="input-group">
+            <input type="text" id="video-file-sequence" placeholder=" ">
+            <label for="video-file-sequence">File Sequence (e.g., 0, 1, 2...)</label>
+        </div>
+        <div class="input-group">
+            <input type="text" id="duration-between-files" placeholder=" ">
+            <label for="duration-between-files">Duration Between Files (e.g., 5, 0, 7... Must Match The Number Of Files)</label>
+        </div>
+        <div class="input-group">
+            <input type="text" id="video-initial-delay" placeholder=" ">
+            <label for="video-initial-delay">Initial Delay (e.g., 2)</label>
+        </div>
+        <div class="button-group">
+            <button id="load-video-config">Load Config</button>
+            <button id="save-video-config">Save Config</button>
+            <button id="start-video-stimuli">Start Stimuli</button>
+        </div>
+        <div class="status-box" id="video-status-stimuli-box">
+            <p>Status: Idle</p>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+
+    </script>
+</body>
+
+</html>
+
+<script>
+    // Notification function
+    function showNotification(message, duration = 3000) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.classList.add('show');
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+            notification.classList.add('hide');
+            setTimeout(() => {
+                notification.classList.remove('hide');
+            }, 500);
+        }, duration);
+    }
+
+    // Subject Description start
+    document.getElementById("submit-subject").addEventListener("click", async () => {
+        const subjectData = {
+            name: document.getElementById('subject-name').value,
+            age: document.getElementById('subject-age').value,
+            uniqueId: document.getElementById('subject-id').value,
+            additionalInfo: document.getElementById('subject-info').value
+        };
+
+        const jsonData = JSON.stringify(subjectData, null, 2);
+        console.log('Subject Data:', jsonData);
+
+
+        const response = await fetch("/subject_information", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(jsonData), // Sending data as JSON
+        });
+
+        const data = await response.json();
+        showNotification("Subject Data Saved");
+    });
+    // Subject Description end
+
+    // status function start
+    function appendStatus(boxId, message) {
+        const statusBox = document.getElementById(boxId);
+        const statusMessage = document.createElement('p');
+        statusMessage.textContent = message;
+        statusBox.appendChild(statusMessage);
+        // Scroll to the bottom of the status box
+        statusBox.scrollTop = statusBox.scrollHeight;
+    }
+    // status function end
+
+    // Video Control Panel start
+    // Start Recording
+    document.getElementById("start-video").addEventListener("click", async () => {
+        const response = await fetch("/start_recording_video", {
+            method: "POST",
+        });
+        const data = await response.json();
+        appendStatus('status-video-box', new Date().toLocaleTimeString() + ' Received Status: ' + data.status);
+    });
+
+    // Stop Recording
+    document.getElementById("stop-video").addEventListener("click", async () => {
+        const response = await fetch("/stop_recording_video", {
+            method: "POST",
+        });
+        const data = await response.json();
+        appendStatus('status-video-box', new Date().toLocaleTimeString() + ' Received Status: ' + data.status);
+    });
+
+    // Visualization
+    document.getElementById("visualization-video").addEventListener("click", async () => {
+        const response = await fetch("/open_visualization_video", {
+            method: "POST",
+        });
+        const data = await response.json();
+        appendStatus('status-video-box', new Date().toLocaleTimeString() + ' Received Status: ' + data.status);
+    });
+    // video Control Panel end
+
+    // Muse Control Panel start
+    // Start Recording
+    document.getElementById("start").addEventListener("click", async () => {
+        const response = await fetch("/start_recording", {
+            method: "POST",
+        });
+        const data = await response.json();
+        appendStatus('status-box', new Date().toLocaleTimeString() + ' - Recording started.' + ' Received Status: ' + data.status);
+    });
+
+    // Stop Recording
+    document.getElementById("stop").addEventListener("click", async () => {
+        const response = await fetch("/stop_recording", {
+            method: "POST",
+        });
+        const data = await response.json();
+        appendStatus('status-box', new Date().toLocaleTimeString() + ' - Recording stopped.' + ' Received Status: ' + data.status);
+    });
+
+    // Visualization
+    document.getElementById("visualization").addEventListener("click", async () => {
+        const response = await fetch("/open_visualization", {
+            method: "POST",
+        });
+        const data = await response.json();
+        appendStatus('status-box', new Date().toLocaleTimeString() + ' - MUSE Feed Started.' + ' Received Status: ' + data.status);
+    });
+    // Muse Control Panel end
+
+    // Function to handle file input and load JSON data start
+    // load config
+    document.getElementById('load-config').addEventListener('click', async () => {
+        // Create a file input element
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.json'; // Only allow JSON files
+
+        // Trigger file selection
+        fileInput.click();
+
+        // Handle file selection
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+
+                        // Example JSON structure:
+                        // {
+                        //     "fileSequence": "0,1,2",
+                        //     "fileDuration": "5,6,7",
+                        //     "initialDelay": "2"
+                        // }
+
+                        // Populate the input fields with JSON data
+                        document.getElementById('file-sequence').value = jsonData.fileSequence || '';
+                        document.getElementById('file-duration').value = jsonData.fileDuration || '';
+                        document.getElementById('initial-delay').value = jsonData.initialDelay || '';
+
+                        // Show a success notification
+                        const response = await fetch("/load_stimuli_config", {
+                            method: "POST",
+                        });
+
+                        const data = await response.json();
+                        appendStatus('status-stimuli-box', new Date().toLocaleTimeString() + ' - Received Status: ' + data.status);
+
+                    } catch (error) {
+                        // Show an error notification if JSON parsing fails
+                        showNotification('Invalid JSON file!', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+    });
+    // save config
+    document.getElementById("save-config").addEventListener("click", async () => {
+        const stimuliData = {
+            fileSequence: document.getElementById('file-sequence').value,
+            fileDuration: document.getElementById('file-duration').value,
+            initialDelay: document.getElementById('initial-delay').value
+        };
+        jsonData = JSON.stringify(stimuliData, null, 2);
+        console.log('Image Stimuli Data:', jsonData);
+
+        const response = await fetch("/save_stimuli_config", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(jsonData), // Sending data as JSON
+        });
+        const data = await response.json();
+        appendStatus('status-stimuli-box', new Date().toLocaleTimeString() + ' - Received Status: ' + data.status);
+    });
+    // start stimuli
+    document.getElementById("start-stimuli").addEventListener("click", async () => {
+        const response = await fetch("/start_stimuli", {
+            method: "POST",
+        });
+        const data = await response.json();
+        appendStatus('status-stimuli-box', new Date().toLocaleTimeString() + ' - Received Status: ' + data.status);
+    });
+    // Function to handle file input and load JSON data end
+
+    // video start
+    // load config
+    document.getElementById('load-video-config').addEventListener('click', async () => {
+        // Create a file input element
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.json'; // Only allow JSON files
+
+        // Trigger file selection
+        fileInput.click();
+
+        // Handle file selection
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+
+                        // Example JSON structure:
+                        // {
+                        //     "fileSequence": "0,1,2",
+                        //     "fileDuration": "5,6,7",
+                        //     "initialDelay": "2"
+                        // }
+
+                        // Populate the input fields with JSON data
+                        document.getElementById('video-file-sequence').value = jsonData.fileSequence || '';
+                        document.getElementById('duration-between-files').value = jsonData.fileDuration || '';
+                        document.getElementById('video-initial-delay').value = jsonData.initialDelay || '';
+
+                        // Show a success notification
+                        const response = await fetch("/load_video_stimuli_config", {
+                            method: "POST",
+                        });
+
+                        const data = await response.json();
+                        appendStatus('video-status-stimuli-box', new Date().toLocaleTimeString() + ' - Received Status: ' + data.status);
+
+                    } catch (error) {
+                        // Show an error notification if JSON parsing fails
+                        showNotification('Invalid JSON file!', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+    });
+    // save config
+    document.getElementById("save-video-config").addEventListener("click", async () => {
+        const stimuliData = {
+            fileSequence: document.getElementById('video-file-sequence').value,
+            fileDuration: document.getElementById('duration-between-files').value,
+            initialDelay: document.getElementById('video-initial-delay').value
+        };
+        jsonData = JSON.stringify(stimuliData, null, 2);
+        console.log('Video Stimuli Data:', jsonData);
+
+        const response = await fetch("/save_video_stimuli_config", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(jsonData), // Sending data as JSON
+        });
+        const data = await response.json();
+        appendStatus('video-status-stimuli-box', new Date().toLocaleTimeString() + ' - Received Status: ' + data.status);
+    });
+    // start stimuli
+    document.getElementById("start-video-stimuli").addEventListener("click", async () => {
+        const response = await fetch("/start_video_stimuli", {
+            method: "POST",
+        });
+        const data = await response.json();
+        appendStatus('video-status-stimuli-box', new Date().toLocaleTimeString() + ' - Received Status: ' + data.status);
+    });
+    // video stop
+
+
+</script>
+
+</html>
