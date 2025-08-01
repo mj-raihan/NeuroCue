@@ -2,7 +2,7 @@
 
 **NeuroCue** is an open-source, Python-based software framework for multimodal and synchronized data acquisition in EEG-based cognitive neuroscience research. It supports multimodal data acquisition, including RGB video recordings from an integrated webcam, allowing the collection of facial expression and behavioral cues alongside EEG signals.
 
-![Alt text](figures/1.svg)
+![Alt text](figures/structure.svg)
 
 
 ---
