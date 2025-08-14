@@ -61,7 +61,7 @@ python main.py
 ```bibtex
 @article{raihan2025neurocue,
   title={NeuroCue: An Open-Source Framework for Synchronized EEG Data Acquisition, Multimodal Recording, and Stimuli Presentation Using Muse Headsets},
-  author={Raihan, Md. Johir and Nahid, Abdullah-Al},
+  author={Raihan, Md. Johir; Tiang and Jun-Jiat and Nahid, Abdullah-Al},
   year={2025},
   note={Under Review}
 }
