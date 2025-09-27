@@ -8,7 +8,7 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../website'))
+sys.path.insert(0, os.path.abspath('../../')) 
 
 project = 'NeuroCue'
 copyright = '2025, Md. Johir Raihan'

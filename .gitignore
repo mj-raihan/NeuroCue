@@ -19,3 +19,5 @@ env/
 .vscode/
 
 desktop.ini
+
+docs/build/

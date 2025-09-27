@@ -259,15 +259,6 @@ def cleanup():
 def start_stimuli():
     """
     Start presenting video stimuli according to the loaded configuration.
-
-    Process:
-    1. Load file sequence, durations, and initial delay.
-    2. Initialize Tkinter fullscreen window.
-    3. Perform countdown during initial delay.
-    4. For each file in sequence:
-       - Play video using VLC.
-       - Show black screen for the specified duration.
-    5. Save timestamps to a JSON log file.
     """
     global config, root, label, stop_event, window_destroyed, stimuli_timestamps, stimuli_file
 
