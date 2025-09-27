@@ -23,7 +23,17 @@ stop_event = threading.Event()  # Event to signal threads to stop
 window_destroyed = False  # Flag to track if the Tkinter window is destroyed
 
 def load_stimuli():
-    """Load and read a JSON file containing stimuli configuration."""
+    """
+    Load and read a JSON file containing stimuli configuration.
+
+    Loads the configuration from:
+        data/video_stimuli_data_sequence.json
+
+    Updates the global `config` dictionary with:
+    - fileSequence: comma-separated filenames
+    - fileDuration: comma-separated durations
+    - initialDelay: delay before the first stimulus
+    """
     global config
     try:
         with open("data/video_stimuli_data_sequence.json", "r") as file:
@@ -34,7 +44,15 @@ def load_stimuli():
         print(f"Video Stimuli Program p4: ERROR loading stimuli configuration: {e}")
 
 def save_config(json_data):
-    """Save JSON data received from another program."""
+    """
+    Save JSON configuration received from parent program.
+
+    Args:
+        json_data (str): JSON string containing configuration.
+
+    Writes the data to:
+        data/video_stimuli_data_sequence.json
+    """
     global config
     try:
         with config_lock:
@@ -46,7 +64,14 @@ def save_config(json_data):
         print(f"Video Stimuli Program p4: ERROR saving configuration: {e}")
 
 def initialize_tkinter():
-    """Initialize Tkinter in a separate thread."""
+    """
+    Initialize a fullscreen Tkinter window for video display.
+
+    Returns:
+        tuple: (root, label)
+            root  -> Tkinter root window
+            label -> Tkinter Label widget to display video frames
+    """
     global root, label, window_destroyed, tkinter_thread
 
     # Reset flags
@@ -66,7 +91,16 @@ def initialize_tkinter():
     return root, label
 
 def update_ui(task_type, data=None):
-    """Update the UI based on the task type."""
+    """
+    Update the Tkinter UI depending on the task type.
+
+    Args:
+        task_type (str): Type of update. Supported values:
+            - "update_label" -> Display countdown numbers.
+            - "black_screen" -> Replace content with a black screen.
+            - "close_window" -> Destroy Tkinter window and save results.
+        data (Any): Extra data required by task_type.
+    """
     global root, label, window_destroyed
     
     if window_destroyed or root is None:
@@ -104,7 +138,17 @@ def update_ui(task_type, data=None):
         print(f"Video Stimuli Program p4: ERROR updating UI: {e}")
 
 def play_video(video_path, stimuli_timestamps, stimuli_file):
-    """Play a video file with both video and audio using VLC."""
+    """
+    Play a video file (with audio) inside the Tkinter window using VLC.
+
+    Args:
+        video_path (str): Path to the video file (.mp4 expected).
+        stimuli_timestamps (list): List to append presentation timestamps.
+        stimuli_file (list): List to append filenames of presented stimuli.
+
+    Returns:
+        bool: True if playback succeeded, False otherwise.
+    """
     global stop_event, root, label
 
     player = None
@@ -167,7 +211,15 @@ def play_video(video_path, stimuli_timestamps, stimuli_file):
             instance.release()
     
 def cleanup():
-    """Clean up resources and stop threads."""
+    """
+    Clean up resources and stop all active threads.
+
+    Actions:
+    - Set stop_event.
+    - Clear Tkinter queue.
+    - Destroy Tkinter window if active.
+    - Reset global variables and clear stimulus lists.
+    """
     global stop_event, tkinter_thread, window_destroyed, root, label, stimuli_timestamps, stimuli_file, tkinter_queue
     
     # Signal all threads to stop
@@ -205,7 +257,18 @@ def cleanup():
     print("Video Stimuli Program p4: Cleanup completed.")
 
 def start_stimuli():
-    """Start displaying videos based on the latest JSON configuration."""
+    """
+    Start presenting video stimuli according to the loaded configuration.
+
+    Process:
+    1. Load file sequence, durations, and initial delay.
+    2. Initialize Tkinter fullscreen window.
+    3. Perform countdown during initial delay.
+    4. For each file in sequence:
+       - Play video using VLC.
+       - Show black screen for the specified duration.
+    5. Save timestamps to a JSON log file.
+    """
     global config, root, label, stop_event, window_destroyed, stimuli_timestamps, stimuli_file
 
     # Initialize frame timestamps list
@@ -282,7 +345,15 @@ def start_stimuli():
         cleanup()
 
 def handle_command(command, conn):
-    """Handle commands received from another program."""
+    """
+    Handle commands received from parent program via Pipe.
+
+    Supported commands:
+        - "load_video_stimuli" : Load configuration.
+        - "save_video_config"  : Save configuration received via Pipe.
+        - "start_video_stimuli": Start presenting stimuli.
+        - "stop_stimuli"       : Stop presentation and cleanup.
+    """
     command = command.strip().lower()
     print(f"Video Stimuli Program p4: Received command: {command}")
 
@@ -309,7 +380,12 @@ def handle_command(command, conn):
         conn.send(f"Unknown command: {command}")
 
 def command_listener(conn):
-    """Listen for commands from another program."""
+    """
+    Listen for commands from parent program.
+
+    Loops until "exit" command is received.
+    Dispatches valid commands to `handle_command`.
+    """
     try:
         print("Video Stimuli Program p4: Command listener started. Waiting for commands...")
         while True:
@@ -330,7 +406,12 @@ def command_listener(conn):
         print("Video Stimuli Program p4: Command listener stopped")
 
 def main(conn):
-    """Main function to start the program."""
+    """
+    Main entry point for the program.
+
+    Starts the command listener thread and waits for external commands.
+    Exits gracefully on KeyboardInterrupt or "exit" command.
+    """
     print("Video Stimuli Program p4: Program starting...")
     try:
         # Start command listener in a separate thread

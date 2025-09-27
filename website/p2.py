@@ -20,7 +20,12 @@ stop_event = threading.Event()  # Event to signal threads to stop
 window_destroyed = False  # Flag to track if the Tkinter window is destroyed
 
 def load_stimuli():
-    """Load and read a JSON file containing stimuli configuration."""
+    """
+    Load and read a JSON file containing image stimuli configuration.
+
+    Loads `data/image_stimuli_data_sequence.json` and updates the global
+    ``config`` dictionary.
+    """
     global config
     try:
         with open("data/image_stimuli_data_sequence.json", "r") as file:
@@ -31,7 +36,17 @@ def load_stimuli():
         print(f"Image Stimuli Program p2: ERROR loading stimuli configuration: {e}")
 
 def save_config(json_data):
-    """Save JSON data received from another program."""
+    """
+    Save JSON configuration received from parent program.
+
+    Args:
+        json_data (str): A JSON-encoded string representing the configuration.
+
+    Side effects:
+        - Updates the global ``config`` dictionary.
+        - Saves the configuration into
+          ``data/image_stimuli_data_sequence.json``.
+    """
     global config
     try:
         with config_lock:
@@ -43,7 +58,14 @@ def save_config(json_data):
         print(f"Image Stimuli Program p2: ERROR saving configuration: {e}")
 
 def initialize_tkinter():
-    """Initialize Tkinter in a separate thread."""
+    """
+    Initialize a fullscreen Tkinter window in a separate thread.
+
+    Returns:
+        tuple:
+            - root (tk.Tk): The Tkinter root window.
+            - label (tk.Label): The label widget for displaying content.
+    """
     global root, label, window_destroyed, tkinter_thread
 
     # Reset flags
@@ -63,7 +85,17 @@ def initialize_tkinter():
     return root, label
 
 def update_ui(task_type, data=None):
-    """Update the UI based on the task type."""
+    """
+    Update the Tkinter UI depending on the given task type.
+
+    Args:
+        task_type (str): One of ``update_label``, ``display_image``,
+            or ``close_window``.
+        data (Any, optional): Data associated with the task:
+            - For ``update_label``: a string to display.
+            - For ``display_image``: path to an image file.
+            - For ``close_window``: list [timestamps, filenames, json_filename].
+    """
     global root, label, window_destroyed
     
     if window_destroyed or root is None:
@@ -103,7 +135,14 @@ def update_ui(task_type, data=None):
         print(f"Image Stimuli Program p2: ERROR updating UI: {e}")
 
 def cleanup():
-    """Clean up resources and stop threads."""
+    """
+    Clean up resources, stop threads, and reset global variables.
+
+    Side effects:
+        - Stops all active threads by setting ``stop_event``.
+        - Closes Tkinter window if open.
+        - Clears timestamps and filenames for stimuli.
+    """
     global stop_event, tkinter_thread, window_destroyed, root, label, stimuli_timestamps, stimuli_file
     
     # Signal all threads to stop
@@ -132,7 +171,17 @@ def cleanup():
     print("Image Stimuli Program p2: Cleanup completed.")
 
 def start_stimuli():
-    """Start displaying images based on the latest JSON configuration."""
+    """
+    Start displaying images according to the loaded configuration.
+
+    Uses ``config`` values for:
+        - fileSequence: Comma-separated image names.
+        - fileDuration: Comma-separated durations for each image.
+        - initialDelay: Countdown time before starting.
+
+    Displays each image sequentially in a fullscreen Tkinter window,
+    logs timestamps, and saves output to JSON.
+    """
     global config, root, label, stop_event, window_destroyed, stimuli_timestamps, stimuli_file
 
     # Initialize frame timestamps list
@@ -208,7 +257,15 @@ def start_stimuli():
         cleanup()
 
 def handle_command(command, conn):
-    """Handle commands received from another program."""
+    """
+    Handle commands received from parent program.
+
+    Args:
+        command (str): Command string such as ``load_stimuli``, ``save_config``,
+            ``start_stimuli``, or ``stop_stimuli``.
+
+    Sends back responses over the connection.
+    """
     command = command.strip().lower()
     print(f"Image Stimuli Program p2: Received command: {command}")
 
@@ -235,7 +292,15 @@ def handle_command(command, conn):
         conn.send(f"Unknown command: {command}")
 
 def command_listener(conn):
-    """Listen for commands from another program."""
+    """
+    Main entry point for the Image Stimuli Program (p2).
+
+    Args:
+        conn (multiprocessing.Connection): IPC connection for commands.
+
+    Starts the command listener thread and keeps the program running until
+    interrupted or explicitly exited.
+    """
     try:
         print("Image Stimuli Program p2: Command listener started. Waiting for commands...")
         while True:

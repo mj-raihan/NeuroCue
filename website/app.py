@@ -1,3 +1,23 @@
+"""
+Flask Control Application for EEG, Motion, PPG, and Video/Stimuli Programs
+
+This module serves as a centralized controller for multiple programs:
+- Program 1 (p1): Camera control
+- Program 2 (p2): Image stimuli control
+- Program 4 (p4): Video stimuli control
+
+It connects to a Muse EEG device via LSL streams, collects EEG, accelerometer, gyroscope,
+and PPG data, and stores it in shared memory for visualization. It also exposes Flask
+routes for starting/stopping recordings, controlling video feeds, and managing stimuli.
+
+Key Features:
+- Real-time data acquisition from Muse device (EEG, accelerometer, gyroscope, PPG)
+- Shared memory for inter-process communication with visualization
+- Flask REST API for user interaction (recording, visualization, stimuli control)
+- Multiprocessing support for external programs (p1, p2, p4)
+- Performance-optimized real-time visualization of EEG and motion data
+"""
+
 from flask import Flask, render_template, jsonify, request
 import threading
 import time
@@ -95,6 +115,12 @@ logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %
 
 # Connect to Muse streams
 def connect_to_muse():
+    """
+    Connect to Muse EEG, accelerometer, gyroscope, and PPG LSL streams.
+
+    Sets global connection flags and initializes StreamInlet objects
+    for each available stream. Prints connection status to console.
+    """
     global eeg_connected, acc_connected, gyro_connected, ppg_connected
     global eeg_inlet, acc_inlet, gyro_inlet, ppg_inlet  # Make inlets global
 
@@ -133,6 +159,13 @@ def connect_to_muse():
 
 # Process data in a separate thread
 def process_data_thread():
+    """
+    Continuous thread for reading Muse LSL streams and updating shared memory buffers.
+
+    - Reads EEG, accelerometer, gyroscope, and PPG chunks.
+    - Updates global buffers and shared memory arrays.
+    - Appends recorded data if recording is enabled.
+    """
     global recording, recorded_data
     global eeg_inlet, acc_inlet, gyro_inlet, ppg_inlet
     # Explicitly declare globals for data arrays
@@ -247,7 +280,17 @@ def subject_information():
 
 # command for video feed control
 def send_command(conn, command, json_data=None):
-    """Send a command to Program 2 via a pipe connection"""
+    """
+    Send a command to a child process via a Pipe connection.
+
+    Args:
+        conn (multiprocessing.Connection): Parent end of a Pipe connection.
+        command (str): Command string to send.
+        json_data (dict, optional): Optional JSON data to send after command.
+
+    Returns:
+        bool: True if command successfully sent and response received, False otherwise.
+    """
     try:
         # Send the command
         conn.send(command)
@@ -410,6 +453,18 @@ def start_video_stimuli():
 
 def start_visualization(shared_memory_names, time_buffer_list, ppg_time_buffer_list, 
                         buffer_size, ppg_buffer_size):
+    
+    """
+    Start a Tkinter-based visualization window showing EEG, frequency bands,
+    accelerometer, gyroscope, and PPG signals.
+
+    Args:
+        shared_memory_names (dict): Names of shared memory blocks.
+        time_buffer_list (list): Time vector for EEG, ACC, GYRO plotting.
+        ppg_time_buffer_list (list): Time vector for PPG plotting.
+        buffer_size (int): Buffer size for EEG/ACC/GYRO.
+        ppg_buffer_size (int): Buffer size for PPG.
+    """
     import tkinter as tk
     import numpy as np
     from multiprocessing import shared_memory
@@ -497,7 +552,7 @@ def start_visualization(shared_memory_names, time_buffer_list, ppg_time_buffer_l
             self.canvas_widget.pack(fill=tk.BOTH, expand=True)
             
             # Reduce the number of points for faster rendering
-            self.downsample_factor = 2  # Adjust this based on your needs
+            self.downsample_factor = 2
             
             # Pre-calculate fixed y-axis limits for better performance
             self._calculate_fixed_limits()
@@ -520,7 +575,6 @@ def start_visualization(shared_memory_names, time_buffer_list, ppg_time_buffer_l
         
         def _calculate_fixed_limits(self):
             """Pre-calculate reasonable fixed y-axis limits for all plots"""
-            # These are example values - adjust based on your actual data ranges
             self.eeg_ylim = (-500, 500)      # μV range for EEG
             self.band_ylim = (-150, 150)     # μV range for frequency bands
             self.acc_ylim = (-1.2, 1.2)      # m/s² range for accelerometer
@@ -703,7 +757,7 @@ def start_visualization(shared_memory_names, time_buffer_list, ppg_time_buffer_l
             self.fig.set_dpi(90)  # Lower DPI for better performance
         
         def update_plot(self, frame):
-            # Downsample data for faster plotting
+            # Down sample data for faster plotting
             ds = self.downsample_factor
             time_ds = time_buffer[::ds]
             ppg_time_ds = ppg_time_buffer[::ds]
@@ -747,7 +801,7 @@ def start_visualization(shared_memory_names, time_buffer_list, ppg_time_buffer_l
                 self.ani.event_source.stop()  # Stop the animation
             
             # Clean up shared memory (only unlink, not close)
-            # We don't close/unlink the shared memory here because the main process is still using it
+            # Don't close/unlink the shared memory here because the main process is still using it
             
             self.root.quit()     # Stop the mainloop
             self.root.destroy()  # Close the window
@@ -768,6 +822,11 @@ def start_visualization(shared_memory_names, time_buffer_list, ppg_time_buffer_l
         
 # Add a function to clean up shared memory resources
 def cleanup_shared_memory():
+    """
+    Clean up shared memory resources and notify the video feed program.
+
+    This should be called when the Flask application exits to release system resources.
+    """
     eeg_shm.close()
     acc_shm.close()
     gyro_shm.close()

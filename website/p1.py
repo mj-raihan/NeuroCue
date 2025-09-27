@@ -7,6 +7,17 @@ import json
 from datetime import datetime
 
 class VideoRecorder:
+    """
+    A class to handle video recording, frame capturing, and live feed display.
+
+    Attributes:
+        recording (bool): True if recording is active.
+        show_feed (bool): True if live camera feed is being displayed.
+        video_writer (cv2.VideoWriter): OpenCV video writer object.
+        capture (cv2.VideoCapture): OpenCV camera capture object.
+        output_filename (str): Filename for saved video.
+        frame_timestamps (list): Timestamps for each recorded frame.
+    """
     def __init__(self):
         self.recording = False
         self.show_feed = False
@@ -19,7 +30,12 @@ class VideoRecorder:
         self.display_thread = None
 
     def setup_camera(self):
-        """Initialize the camera and set to highest available frame rate"""
+        """
+        Initialize the camera.
+
+        Returns:
+            bool: True if camera initialized successfully, False otherwise.
+        """
         try:
             self.capture = cv2.VideoCapture(0)
             if not self.capture.isOpened():
@@ -45,7 +61,10 @@ class VideoRecorder:
             return False
 
     def _capture_frames(self):
-        """Internal method to capture frames for both recording and display"""
+        """
+        Internal method to continuously capture frames from the camera.
+        Handles recording frames and displaying live feed.
+        """
         try:
             while self.recording or self.show_feed:
                 ret, frame = self.capture.read()
@@ -71,7 +90,10 @@ class VideoRecorder:
             print("Camera Program p1: Frame capture stopped")
 
     def start_recording(self):
-        """Start recording video at the highest available frame rate"""
+        """
+        Start recording video.
+        Saves video to a timestamped file and stores frame timestamps.
+        """
         with self.lock:
             if self.recording:
                 print("Camera Program p1: Already recording")
@@ -113,7 +135,10 @@ class VideoRecorder:
                     self.video_writer = None
 
     def stop_recording(self):
-        """Stop video recording"""
+        """
+        Stop video recording and save frame timestamps to a JSON file.
+        Releases the video writer object safely.
+        """
         with self.lock:
             if not self.recording:
                 print("Camera Program p1: Not recording")
@@ -148,7 +173,9 @@ class VideoRecorder:
                 self.recording = False
 
     def display_feed(self):
-        """Function to display camera feed"""
+        """
+        Start displaying the live camera feed in a separate window.
+        """
         with self.lock:
             if self.show_feed:
                 return
@@ -163,7 +190,9 @@ class VideoRecorder:
             print("Camera Program p1: Camera feed started")
 
     def close_feed(self):
-        """Close camera feed display"""
+        """
+        Close the live camera feed display and stop the display thread if not recording.
+        """
         with self.lock:
             self.show_feed = False
             time.sleep(0.1)  # Allow time for display loop to exit
@@ -176,7 +205,10 @@ class VideoRecorder:
             print("Camera Program p1: Camera feed closed")
 
     def video_clean_up(self):
-        """Clean up all resources"""
+        """
+        Clean up all resources including stopping recording, releasing camera,
+        and closing any open windows.
+        """
         with self.lock:
             self.show_feed = False
             if self.recording:
@@ -195,7 +227,14 @@ class VideoRecorder:
             print("Camera Program p1: All resources cleaned up")
 
 def handle_command(recorder, command, conn):
-    """Handle commands received from Program 1"""
+    """
+    Handle a command string received from the parent program.
+
+    Args:
+        recorder (VideoRecorder): Instance of VideoRecorder to execute commands.
+        command (str): Command string.
+        conn (multiprocessing.Connection): Pipe connection to send back responses.
+    """
     command = command.strip().lower()
     print(f"Camera Program p1: Received command: {command}")
     
@@ -221,7 +260,13 @@ def handle_command(recorder, command, conn):
         conn.send(f"Unknown command: {command}")
 
 def command_listener(recorder, conn):
-    """Listen for commands from Program 1"""
+    """
+    Continuously listen for commands from the parent program and execute them.
+
+    Args:
+        recorder (VideoRecorder): Instance to execute commands.
+        conn (multiprocessing.Connection): Pipe connection to communicate with parent.
+    """
     try:
         print("Camera Program p1: Command listener started. Waiting for commands...")
         
@@ -243,6 +288,12 @@ def command_listener(recorder, conn):
         print("Camera Program p1: Command listener stopped")
 
 def main(conn):
+    """
+    Main entry point for the video program.
+
+    Args:
+        conn (multiprocessing.Connection): Pipe connection to receive commands.
+    """
     print("Camera Program p1: Video Program starting...")
     recorder = VideoRecorder()
     
