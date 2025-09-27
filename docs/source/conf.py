@@ -18,6 +18,21 @@ release = '1'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
+# In docs/conf.py
+autodoc_mock_imports = [
+    "flask",
+    "cv2",
+    "pylsl",
+    "matplotlib",
+    "numpy",
+    "vlc",
+    "PIL",
+    "pillow",
+    "scipy",
+    "opencv-contrib-python",
+]
+
+
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
