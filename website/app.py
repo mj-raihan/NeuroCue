@@ -28,9 +28,9 @@ import multiprocessing
 from multiprocessing import shared_memory, Manager
 import matplotlib.pyplot as plt
 import logging
-from . import p1
-from . import p2
-from . import p4
+import p1
+import p2
+import p4
 import warnings
 import logging
 
@@ -39,6 +39,80 @@ logging.getLogger('matplotlib').setLevel(logging.CRITICAL)
 logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
 
 app = Flask(__name__)
+
+# Sample rates and parameters for Muse
+SAMPLE_RATE = 256  # Hz for Muse EEG
+ACC_SAMPLE_RATE = 52  # Hz for Muse accelerometer
+GYRO_SAMPLE_RATE = 52  # Hz for Muse gyroscope
+PPG_SAMPLE_RATE = 64  # Hz for Muse PPG
+DISPLAY_TIME = 10  # seconds to display
+BUFFER_SIZE = SAMPLE_RATE * DISPLAY_TIME  # Buffer size for EEG data
+PPG_BUFFER_SIZE = PPG_SAMPLE_RATE * DISPLAY_TIME  # Buffer size for PPG data
+
+# Global variables for recording
+recording = False
+recorded_data = {
+    "eeg": [],
+    "acc": [],
+    "gyro": [],
+    "ppg": []
+}
+
+# Initialize data buffers
+eeg_data = np.zeros((4, BUFFER_SIZE))  # 4 EEG channels (TP9, AF7, AF8, TP10)
+acc_data = np.zeros((3, BUFFER_SIZE))  # 3 accelerometer axes
+gyro_data = np.zeros((3, BUFFER_SIZE))  # 3 gyroscope axes
+ppg_data = np.zeros((3, PPG_BUFFER_SIZE))  # 3 PPG channels (PPG1, PPG2, PPG3)
+
+# Initialize time buffers
+time_buffer = np.linspace(-DISPLAY_TIME, 0, BUFFER_SIZE)
+ppg_time_buffer = np.linspace(-DISPLAY_TIME, 0, PPG_BUFFER_SIZE)
+
+# Create shared memory for inter-process communication
+# Create shared memory blocks
+eeg_shm = shared_memory.SharedMemory(create=True, size=eeg_data.nbytes)
+acc_shm = shared_memory.SharedMemory(create=True, size=acc_data.nbytes)
+gyro_shm = shared_memory.SharedMemory(create=True, size=gyro_data.nbytes)
+ppg_shm = shared_memory.SharedMemory(create=True, size=ppg_data.nbytes)
+
+
+# Create numpy arrays that use the shared memory
+shared_eeg_data = np.ndarray(eeg_data.shape, dtype=eeg_data.dtype, buffer=eeg_shm.buf)
+shared_acc_data = np.ndarray(acc_data.shape, dtype=acc_data.dtype, buffer=acc_shm.buf)
+shared_gyro_data = np.ndarray(gyro_data.shape, dtype=gyro_data.dtype, buffer=gyro_shm.buf)
+shared_ppg_data = np.ndarray(ppg_data.shape, dtype=ppg_data.dtype, buffer=ppg_shm.buf)
+
+# Initialize the shared memory arrays with the initial data
+shared_eeg_data[:] = eeg_data[:]
+shared_acc_data[:] = acc_data[:]
+shared_gyro_data[:] = gyro_data[:]
+shared_ppg_data[:] = ppg_data[:]
+
+# Store shared memory names for the visualization process
+shared_memory_names = {
+    'eeg': eeg_shm.name,
+    'acc': acc_shm.name,
+    'gyro': gyro_shm.name,
+    'ppg': ppg_shm.name
+}
+
+# Connection status flags
+eeg_connected = False
+acc_connected = False
+gyro_connected = False
+ppg_connected = False
+
+# Global variables for LSL inlets
+eeg_inlet = None
+acc_inlet = None
+gyro_inlet = None
+ppg_inlet = None
+
+# Threading lock for thread safety
+data_lock = threading.Lock()
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Connect to Muse streams
 def connect_to_muse():
@@ -774,79 +848,6 @@ def cleanup_shared_memory():
     print(f"Shared memory cleaned up")
 
 if __name__ == "__main__":
-    # Sample rates and parameters for Muse
-    SAMPLE_RATE = 256  # Hz for Muse EEG
-    ACC_SAMPLE_RATE = 52  # Hz for Muse accelerometer
-    GYRO_SAMPLE_RATE = 52  # Hz for Muse gyroscope
-    PPG_SAMPLE_RATE = 64  # Hz for Muse PPG
-    DISPLAY_TIME = 10  # seconds to display
-    BUFFER_SIZE = SAMPLE_RATE * DISPLAY_TIME  # Buffer size for EEG data
-    PPG_BUFFER_SIZE = PPG_SAMPLE_RATE * DISPLAY_TIME  # Buffer size for PPG data
-
-    # Global variables for recording
-    recording = False
-    recorded_data = {
-        "eeg": [],
-        "acc": [],
-        "gyro": [],
-        "ppg": []
-    }
-
-    # Initialize data buffers
-    eeg_data = np.zeros((4, BUFFER_SIZE))  # 4 EEG channels (TP9, AF7, AF8, TP10)
-    acc_data = np.zeros((3, BUFFER_SIZE))  # 3 accelerometer axes
-    gyro_data = np.zeros((3, BUFFER_SIZE))  # 3 gyroscope axes
-    ppg_data = np.zeros((3, PPG_BUFFER_SIZE))  # 3 PPG channels (PPG1, PPG2, PPG3)
-
-    # Initialize time buffers
-    time_buffer = np.linspace(-DISPLAY_TIME, 0, BUFFER_SIZE)
-    ppg_time_buffer = np.linspace(-DISPLAY_TIME, 0, PPG_BUFFER_SIZE)
-
-    # Create shared memory for inter-process communication
-    # Create shared memory blocks
-    eeg_shm = shared_memory.SharedMemory(create=True, size=eeg_data.nbytes)
-    acc_shm = shared_memory.SharedMemory(create=True, size=acc_data.nbytes)
-    gyro_shm = shared_memory.SharedMemory(create=True, size=gyro_data.nbytes)
-    ppg_shm = shared_memory.SharedMemory(create=True, size=ppg_data.nbytes)
-
-
-    # Create numpy arrays that use the shared memory
-    shared_eeg_data = np.ndarray(eeg_data.shape, dtype=eeg_data.dtype, buffer=eeg_shm.buf)
-    shared_acc_data = np.ndarray(acc_data.shape, dtype=acc_data.dtype, buffer=acc_shm.buf)
-    shared_gyro_data = np.ndarray(gyro_data.shape, dtype=gyro_data.dtype, buffer=gyro_shm.buf)
-    shared_ppg_data = np.ndarray(ppg_data.shape, dtype=ppg_data.dtype, buffer=ppg_shm.buf)
-
-    # Initialize the shared memory arrays with the initial data
-    shared_eeg_data[:] = eeg_data[:]
-    shared_acc_data[:] = acc_data[:]
-    shared_gyro_data[:] = gyro_data[:]
-    shared_ppg_data[:] = ppg_data[:]
-
-    # Store shared memory names for the visualization process
-    shared_memory_names = {
-        'eeg': eeg_shm.name,
-        'acc': acc_shm.name,
-        'gyro': gyro_shm.name,
-        'ppg': ppg_shm.name
-    }
-
-    # Connection status flags
-    eeg_connected = False
-    acc_connected = False
-    gyro_connected = False
-    ppg_connected = False
-
-    # Global variables for LSL inlets
-    eeg_inlet = None
-    acc_inlet = None
-    gyro_inlet = None
-    ppg_inlet = None
-
-    # Threading lock for thread safety
-    data_lock = threading.Lock()
-
-    # Configure logging
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 
     try:
         connect_to_muse()
