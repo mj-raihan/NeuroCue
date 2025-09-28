@@ -28,7 +28,7 @@
 
 ---
 
-## ▶️ Watch Tutorial
+## 🎬 Watch Tutorial
 
 [![Watch the tutorial](https://img.youtube.com/vi/zWrGUr24myQ/0.jpg)](https://youtu.be/zWrGUr24myQ)
 
@@ -60,7 +60,7 @@ python -m website.app
 ## 🔍 Citation
 ```bibtex
 @article{raihan2025neurocue,
-  title={NeuroCue: An Open-Source Framework for EEG Data Acquisition, multi-modal Recording, and Stimuli Presentation Using Muse Headsets},
+  title={NeuroCue: An Open-Source Framework for EEG Data Acquisition, Multi-Modal Recording, and Stimuli Presentation Using Muse Headsets},
   author={Raihan, Md. Johir; Tiang and Jun-Jiat and Nahid, Abdullah-Al},
   year={2025},
   note={Under Review}
