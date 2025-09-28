@@ -28,9 +28,16 @@
 
 ---
 
+
 ## 🎬 Watch Tutorial
 
 [![Watch the tutorial](https://img.youtube.com/vi/zWrGUr24myQ/0.jpg)](https://youtu.be/zWrGUr24myQ)
+
+
+## 📖 Documentation
+
+Documentation is available on [https://neurocue.readthedocs.io/en/latest/](https://neurocue.readthedocs.io/en/latest/)
+
 
 
 ## 🛠️ Installation
