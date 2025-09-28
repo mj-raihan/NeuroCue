@@ -51,7 +51,7 @@ pip install -r requirements.txt
 ### 3. Run the Main Interface
 
 ```bash
-python main.py
+python -m website.app
 ```
 
 > ⚠️ **Important:** This software requires [BlueMuse](https://github.com/kowalej/BlueMuse) to be installed and running to stream EEG data from the Muse headset.  
